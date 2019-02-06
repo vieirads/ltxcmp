@@ -1,0 +1,46 @@
+#!/bin/bash
+
+function checkrm {
+  if [ -e $1 ]
+  then
+    rm $1
+  fi
+}
+
+if [ $# != 1 ]
+then
+  echo -e "\nUSAGE: ltxcmp main.tex\n"
+else
+  if [ -e $1 ]
+  then
+    pdflatex -shell-escape -interaction=nonstopmode -file-line-error $1 | grep -i ".*:[0-9]*:.*\|warning" > mainself.log
+
+    echo "Compiling files."
+
+    echo "bibtex" > mainself.log
+    bibtex -terse ${1%.tex}.aux >> mainself.log
+
+    echo "Second compilation" >> mainself.log
+    pdflatex -shell-escape -interaction=nonstopmode -file-line-error $1 | grep -i ".*:[0-9]*:.*\|warning" >> mainself.log
+
+    echo "Third compilation" >> mainself.log
+    pdflatex -shell-escape -interaction=nonstopmode -file-line-error $1 | grep -i ".*:[0-9]*:.*\|warning" >> mainself.log
+
+    checkrm *.aux
+    # checkrm *.bbl
+    checkrm *.blg
+    checkrm *.lof
+    checkrm *.lot
+    checkrm *.out
+    checkrm *.toc
+    checkrm *.nav
+    checkrm *.snm
+    checkrm *.vrb
+
+    evince ${1%.tex}.pdf >/dev/null 2>&1 &
+  fi
+fi
+
+clear
+
+echo "Compiled with success!"
